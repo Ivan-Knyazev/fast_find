@@ -1,38 +1,30 @@
 from database import *
 from sqlalchemy.orm import Session
-from fastapi import Depends, FastAPI, Body
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi import Depends, FastAPI, APIRouter
+# from fastapi.responses import JSONResponse, FileResponse
+from typing import List
 from find import *
-
-# создаем таблицы
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-
-# определяем зависимость
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+find_router = APIRouter(
+    prefix="",
+    tags=["Find User"]
+)
 
 
-@app.get("/")
-def main():
-    return 'OK'
+@find_router.get("/api/users/find", response_model=List[UserSchema])
+def get_user(required_user: str, db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    return find_user(required_user, users)
 
 
-@app.get("/api/users")
+@find_router.get("/api/users", response_model=List[UserSchema])
 def get_users(db: Session = Depends(get_db)):
     return db.query(User).all()
 
 
-@app.get("/api/users/find")
-def get_user(required_user: str, db: Session = Depends(get_db)):
-    users = db.query(User).all()
-    return find_user(required_user, users)
+app.include_router(find_router)
 
 # @app.get("/api/users/{id}")
 # def get_person(id, db: Session = Depends(get_db)):

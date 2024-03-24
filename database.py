@@ -9,7 +9,20 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread
 
 Base = declarative_base()
 
+# Create tables
+Base.metadata.create_all(bind=engine)
 
+
+# Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+# Model
 class User(Base):
     __tablename__ = "Users"
 
@@ -20,11 +33,13 @@ class User(Base):
     email = Column(String)
 
 
+# Session
 SessionLocal = sessionmaker(autoflush=False, bind=engine)
 
 
-# class User(BaseModel):
-#     name: str
-#     surname: str
-#     patronymic: str
-#     email: str
+# Schema
+class UserSchema(BaseModel):
+    name: str
+    surname: str
+    patronymic: str
+    email: str
